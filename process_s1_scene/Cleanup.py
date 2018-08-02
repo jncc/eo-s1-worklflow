@@ -39,8 +39,8 @@ class Cleanup(luigi.Task):
                 out.write('folder path doesn\'t exist, nothing to teardown')
 
         if self.removeSourceFile:
-            log.info('Removing source file')
-            os.unlink(self.sourceFile)
+            log.info('Removing source file from basket')
+            os.unlink(os.path.join(self.pathRoots["basketPath"], os.path.basename(self.sourceFile)))
 
     def output(self):
         outputFolder = os.path.join(self.pathRoots["state-localRoot"], self.productId)
