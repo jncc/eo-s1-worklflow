@@ -4,9 +4,9 @@ import re
 import json
 import logging
 import shutil
-import container.process_s1_scene.common as wc
+import process_s1_scene.common as wc
 from luigi.util import requires
-from container.process_s1_scene.TransferFinalOutput import TransferFinalOutput
+from process_s1_scene.TransferFinalOutput import TransferFinalOutput
 
 log = logging.getLogger('luigi-interface')
 
@@ -39,8 +39,8 @@ class Cleanup(luigi.Task):
                 out.write('folder path doesn\'t exist, nothing to teardown')
 
         if self.removeSourceFile:
-            log.info('Removing source file')
-            os.unlink(self.sourceFile)
+            log.info('Removing source file from basket')
+            os.unlink(os.path.join(self.pathRoots["basketPath"], os.path.basename(self.sourceFile)))
 
     def output(self):
         outputFolder = os.path.join(self.pathRoots["state-localRoot"], self.productId)
