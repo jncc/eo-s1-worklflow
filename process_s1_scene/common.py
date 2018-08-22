@@ -30,6 +30,22 @@ def getProductPatternFromSourceFile(sourceFile):
     productFilename = basename(sourceFile)
     return '%s_%s%s%s_%s_%s' % (productFilename[0:3], productFilename[23:25], datetime.strptime(productFilename[21:23], '%m').strftime('%b'), productFilename[17:21], productFilename[26:32], productFilename[42:48])
 
+def getCollectionModeFromSourceFile(sourceFile):
+    productFilename = basename(sourceFile)
+    return '%s' % (productFilename[4:6])
+
+def getStartDateFromSourceFile(sourceFile):
+    productFilename = basename(sourceFile)
+    return '%s-%s-%s' % (productFilename[17:21], productFilename[21:23], productFilename[23:25])
+
+def getEndDateFromSourceFile(sourceFile):
+    productFilename = basename(sourceFile)
+    return '%s-%s-%s' % (productFilename[33:37], productFilename[37:39], productFilename[39:41])
+
+def getProjectionFromOutputFile(outputFile):
+    productFilename = basename(outputFile)
+    return '%s' % (productFilename[43:51])
+
 def createTestFile(outputfile):
     os.makedirs(os.path.dirname(outputfile), exist_ok=True)
     with open(outputfile, 'w') as f:

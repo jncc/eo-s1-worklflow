@@ -5,12 +5,12 @@ import json
 import logging
 import process_s1_scene.common as wc
 from luigi.util import requires
-from process_s1_scene.AddMergedOverviews import AddMergedOverviews
+from process_s1_scene.GenerateMetadata import GenerateMetadata
 from shutil import copyfile
 
 log = logging.getLogger('luigi-interface')
 
-@requires(AddMergedOverviews)
+@requires(GenerateMetadata)
 class TransferFinalOutput(luigi.Task):
     sourceFile = luigi.Parameter()
     pathRoots = luigi.DictParameter()
