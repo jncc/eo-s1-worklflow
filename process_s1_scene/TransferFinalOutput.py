@@ -24,7 +24,8 @@ class TransferFinalOutput(luigi.Task):
             current_progress['outputs'] = {
                 'VV': [],
                 'VH': [],
-                'merged' : ''
+                'merged': '',
+                'metadata': ''
             }
 
             generatedProductPath = self.getPathFromProductId(self.pathRoots["outputRoot"], self.productId)
@@ -33,9 +34,16 @@ class TransferFinalOutput(luigi.Task):
             self.copyPolarisationFiles("VV", generatedProductPath, current_progress)
 
             product = current_progress['files']['merged']
-            targetPath = os.path.join(generatedProductPath, os.path.basename(product)) 
-            copyfile(product, targetPath)
-            current_progress['outputs']['merged'] = targetPath
+            metadata = current_progress['files']['metadata']
+
+            productOutputPath = os.path.join(generatedProductPath, os.path.basename(product))
+            metadataOutputPath = os.path.join(generatedProductPath, os.path.basename(metadata))
+
+            copyfile(product, productOutputPath)
+            copyfile(metadata, metadataOutputPath)
+
+            current_progress['outputs']['merged'] = productOutputPath
+            current_progress['outputs']['metadata'] = metadataOutputPath
 
             with self.output().open('w') as out:
                 out.write(json.dumps(current_progress))
