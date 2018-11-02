@@ -6,7 +6,7 @@ The luigi workflow tasks from `EO-Alpha` for processing Sentinel 1 ARD data.
 ### Process S1 Scene
 The processing of each ARD is a time intensive procedure, you can skip this part of the process by providing the `--testProcessing` parameter. The workflow will still execute all tasks but the `ProcessRawToArd` task will create dummy outputs instead of processing the ARD.
 ```
-PYTHONPATH='.' luigi --module process_s1_scene Cleanup --productId <productId> --sourceFile '<rawInputFilePath>'
+PYTHONPATH='.' luigi --module container Cleanup --productId <productId> --sourceFile '<rawInputFilePath>'
 ```
 
 ## Development
