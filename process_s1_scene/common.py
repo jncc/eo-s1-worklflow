@@ -31,10 +31,10 @@ def getProductPatternFromSourceFile(sourceFile):
     productFilename = basename(sourceFile)
     return '{0}_{1}{2}{3}_{4}_{5}'.format(productFilename[0:3], productFilename[23:25], datetime.strptime(productFilename[21:23], '%m').strftime('%b'), productFilename[17:21], productFilename[26:32], productFilename[42:48])
 
-def createTestFile(outputfile):
+def createTestFile(outputfile, content):
     os.makedirs(os.path.dirname(outputfile), exist_ok=True)
     with open(outputfile, 'w') as f:
-        f.write('TEST_FILE')
+        f.write(content)
 
 
 def createWorkingPath(workingPathRoot, workingPath): 

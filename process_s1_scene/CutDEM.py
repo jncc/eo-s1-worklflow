@@ -17,7 +17,6 @@ log = logging.getLogger('luigi-interface')
 @requires(GetConfiguration)
 class CutDEM(luigi.Task):
     paths = luigi.DictParameter()
-    inputFileName = luigi.Parameter()
     testProcessing = luigi.BoolParameter()
     demFileName = luigi.Parameter()
 
