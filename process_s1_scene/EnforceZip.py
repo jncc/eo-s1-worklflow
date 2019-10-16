@@ -12,10 +12,10 @@ log = logging.getLogger('luigi-interface')
 
 class EnforceZip(luigi.Task):
     paths = luigi.DictParameter()
-    productId = luigi.Parameter()
+    productName = luigi.Parameter()
 
     def run(self):
-        unzippedFilePath = os.path.join(self.paths["input"], self.productId)
+        unzippedFilePath = os.path.join(self.paths["input"], self.productName)
 
         zipf = zipfile.ZipFile(unzippedFilePath+".zip", 'w', zipfile.ZIP_DEFLATED)
         try:
@@ -28,8 +28,8 @@ class EnforceZip(luigi.Task):
 
         with self.output().open("w") as outFile:
             outFile.write(json.dumps({
-                "productId": self.productId,
-                "zippedFileName": self.productId+".zip"
+                "productName": self.productName,
+                "zippedFileName": self.productName+".zip"
             }))
 
     def zipdir(self, path, ziph):
@@ -38,7 +38,7 @@ class EnforceZip(luigi.Task):
         for root, dirs, files in os.walk(path):
             for file in files:
                 file_path = os.path.join(root, file)
-                ziph.write(file_path, f"/{self.productId}.SAFE"+file_path[len_path:])
+                ziph.write(file_path, f"/{self.productName}.SAFE"+file_path[len_path:])
 
     def output(self):
         outFile = os.path.join(self.paths['state'], 'EnforceZip.json')

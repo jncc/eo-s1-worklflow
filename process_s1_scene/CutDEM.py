@@ -67,7 +67,8 @@ class CutDEM(luigi.Task):
                 raise RuntimeError(errStr)
 
         else:
-            yield CreateLocalFile(filePath=cutDemPath, content="TEST_FILE")
+            # yield CreateLocalFile(filePath=cutDemPath, content="TEST_FILE")
+            wc.createTestFile(cutDemPath, "TEST_FILE")
 
         with self.output().open("w") as outFile:
             outFile.write(json.dumps({

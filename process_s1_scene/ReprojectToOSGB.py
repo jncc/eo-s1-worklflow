@@ -86,7 +86,7 @@ class ReprojectToOSGB(luigi.Task):
                 log.error(errStr)
                 raise RuntimeError(errStr)
         else:
-            wc.createTestFile(outputFile)
+            wc.createTestFile(outputFile, "TEST_FILE")
         
         state["reprojectedFiles"][polarisation].append(outputFile)
 

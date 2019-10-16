@@ -62,7 +62,7 @@ class MergeBands(luigi.Task):
                 log.error(errStr)
                 raise RuntimeError(errStr)
         else:
-            wc.createTestFile(outputFile)
+            wc.createTestFile(outputFile, "TEST_FILE")
         
         with self.output().open('w') as out:
             out.write(json.dumps({

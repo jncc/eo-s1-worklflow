@@ -31,14 +31,15 @@ class GetConfiguration(luigi.Task):
         check = CheckFileExists(inputFilePath)
         yield check
 
+        productId = wc.getProductIdFromSourceFile(inputFilePath)
         with self.output().open("w") as outFile:
             outFile.write(json.dumps({
                 "inputFilePath" : inputFilePath,
-                "productPattern" : wc.getProductPatternFromSourceFile(enforceZipInfo["productId"]),
-                "productId" : enforceZipInfo["productId"],
-                "workingRoot" : os.path.join(self.paths['working'], enforceZipInfo["productId"]),
+                "productPattern" : wc.getProductPatternFromSourceFile(inputFilePath),
+                "productId" : productId,
+                "workingRoot" : os.path.join(self.paths['working'], productId),
                 "noCopyState" : self.noStateCopy,
-                "outputPath" : self.getOutputPathFromProductId(self.paths['output'], enforceZipInfo["productId"])
+                "outputPath" : self.getOutputPathFromProductId(self.paths['output'], productId)
             }))
 
     def output(self):
