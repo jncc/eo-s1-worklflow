@@ -59,7 +59,7 @@ class ProcessRawToArd(luigi.Task):
 
         return expectedOutput
 
-    def runShellScript(self, script, parameters, runAsShell=True):
+    def runShellScript(self, script, arguments, parameters, runAsShell=True):
         os.chdir(self.paths["scripts"])
         env = {
             "MAIN_DIR" : parameters["s1_ard_main_dir"],
@@ -72,7 +72,7 @@ class ProcessRawToArd(luigi.Task):
             "false_northing" : parameters["s1_ard_false_northing"]
         }
 
-        return subprocess.run("sh {0} {1}".format(script, parameters["arguments"]), env=env, shell=runAsShell).returncode        
+        return subprocess.run("sh {0} {1}".format(script, arguments), env=env, shell=runAsShell).returncode        
 
     def createTestFiles(self, expectedFiles):
         # tasks = []
@@ -107,7 +107,7 @@ class ProcessRawToArd(luigi.Task):
         # Runs shell process to create the ard products
         retcode = 0
         if not self.testProcessing:
-            retcode = self.runShellScript('JNCC_S1_GRD_MAIN_v2.1.1.sh', configureProcessingInfo["parameters"])
+            retcode = self.runShellScript('JNCC_S1_GRD_MAIN_v2.1.1.sh', configureProcessingInfo["arguments"], configureProcessingInfo["parameters"])
         else:
             expectedFiles = expectedOutput["files"]["VV"] + expectedOutput["files"]["VH"]
             self.createTestFiles(expectedFiles)
