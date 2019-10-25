@@ -13,7 +13,7 @@ from os.path import join as joinPath
 
 log = logging.getLogger('luigi-interface')
 
-@requires(AddMergedOverviews)
+# @requires(AddMergedOverviews)
 class ModifyNoDataTif(luigi.Task):
     paths = luigi.DictParameter()
     testProcessing = luigi.BoolParameter()

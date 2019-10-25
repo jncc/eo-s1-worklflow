@@ -1,13 +1,11 @@
 import luigi
 import os
 import re
-import errno
 import json
 import logging
 import process_s1_scene.common as wc
 import subprocess
 import distutils.dir_util as distutils
-import re
 from luigi import LocalTarget
 from luigi.util import requires
 from functional import seq
@@ -32,63 +30,34 @@ class ReprojectToOSGB(luigi.Task):
 
     reprojectionFilePattern = "^[\w\/-]+_Gamma0_APGB_UTMWGS84_RTC_SpkRL_dB.tif"
 
-    def getOutputFileName(self, inputFileName, polarisation, manifest, finalSrsName):
-        inputFileSegments = inputFileName.split('_')
-
-        a = inputFileSegments[0]
-        b = inputFileSegments[4].split('T')[0] #date part
-
-        c = ''
-        absOrbitNo = int(inputFileSegments[6])
-        if a == "S1A":
-            c = str(((absOrbitNo - 73) % 175) + 1)
-        elif a == "S1B":
-            c = str(((absOrbitNo - 27) % 175) + 1)
-        else:
-            msg = "Invalid input file name, should begin S1A or S1B not {0}".format(a)
-            raise Exception(msg)
-
-        pattern = "<s1:pass>(.+)<\/s1:pass>"
-        orbitDirectionRaw = re.search(pattern, manifest).group(1)
-
-        d = ''
-        if orbitDirectionRaw == "ASCENDING":
-            d = "asc"
-        elif orbitDirectionRaw == "DESCENDING":
-            d = "desc"
-        else:
-            msg = "Invalid orbit direction in manifest, must be ASCENDING or DESCENDING but is {0}".format(orbitDirectionRaw)
-            raise Exception(msg)
-
-        e = inputFileSegments[4].split('T')[1]
-        f = inputFileSegments[5].split('T')[1]
-        g = polarisation
-        h = finalSrsName
-
-        return "{0}_{1}_{2}_{3}_{4}_{5}_{6}_Gamma-0_{7}_RCTK_SpkRL.tif".format(a,b,c,d,e,f,g,h)
-
     def reprojectPolorisation(self, polarisation, sourceFile, state, manifest, configuration, inputFileName, outputRoot):
         outputPath = joinPath(outputRoot, polarisation)
 
         if not os.path.exists(outputPath):
             os.makedirs(outputPath)
 
-        outputFile = joinPath(outputPath, self.getOutputFileName(inputFileName, polarisation, manifest, configuration["finalSrsName"]))
+        outputFile = joinPath(outputPath, wc.getOutputFileName(inputFileName, polarisation, manifest, configuration["finalSrsName"]))
 
         if not self.testProcessing:
             try:
-                subprocess.check_output(
-                    "gdalwarp -overwrite -s_srs {} -t_srs {} -r bilinear -dstnodata 0 -of GTiff -tr 10 10 --config CHECK_DISK_FREE_SPACE NO {} {}"
-                        .format(configuration["sourceSrs"], configuration["targetSrs"], sourceFile, outputFile), 
+                env = {
+                    "GDAL_DATA" : "/usr/share/gdal/2.2"
+                }
+
+                subprocess.run("gdalwarp -overwrite -s_srs {} -t_srs {} -r bilinear -dstnodata 0 -of GTiff -tr 10 10 --config CHECK_DISK_FREE_SPACE NO {} {}"
+                    .format(configuration["sourceSrs"], configuration["targetSrs"], sourceFile, outputFile),
+                    env=env, 
+                    check=True, 
+                    stdout=subprocess.PIPE, 
                     stderr=subprocess.STDOUT,
-                    shell=True)
+                    shell=True).stdout
                 
             except subprocess.CalledProcessError as e:
                 errStr = "command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output)
                 log.error(errStr)
                 raise RuntimeError(errStr)
         else:
-            wc.createTestFile(outputFile, "TEST_FILE")
+            wc.createTestFile(outputFile)
         
         state["reprojectedFiles"][polarisation].append(outputFile)
 
@@ -127,7 +96,9 @@ class ReprojectToOSGB(luigi.Task):
         }
 
         polarisations = ["VV","VH"]
+
         inputFileName = os.path.basename(configuration["inputFilePath"])
+
         outputRoot = configureProcessingInfo["parameters"]["s1_ard_temp_output_dir"]
 
         for polarisation in polarisations:

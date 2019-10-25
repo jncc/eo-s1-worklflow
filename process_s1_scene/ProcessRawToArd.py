@@ -75,12 +75,8 @@ class ProcessRawToArd(luigi.Task):
         return subprocess.run("sh {0} {1}".format(script, arguments), env=env, shell=runAsShell).returncode        
 
     def createTestFiles(self, expectedFiles):
-        # tasks = []
         for filePath in expectedFiles:
-            # tasks.append(CreateLocalFile(filePath = filePath, content='Test File'))
-            wc.createTestFile(filePath, "Test file")
-
-        # yield tasks
+            wc.createTestFile(filePath)
             
     def run(self):
         # copy input file to temp.

@@ -68,7 +68,7 @@ class CutDEM(luigi.Task):
 
         else:
             # yield CreateLocalFile(filePath=cutDemPath, content="TEST_FILE")
-            wc.createTestFile(cutDemPath, "TEST_FILE")
+            wc.createTestFile(cutDemPath)
 
         with self.output().open("w") as outFile:
             outFile.write(json.dumps({
