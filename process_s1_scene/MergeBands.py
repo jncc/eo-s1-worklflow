@@ -9,22 +9,23 @@ import subprocess
 from luigi import LocalTarget
 from luigi.util import requires
 from functional import seq
-from process_s1_scene.ReprojectToOSGB import ReprojectToOSGB
+from process_s1_scene.ReprojectToTargetSrs import ReprojectToTargetSrs
 from process_s1_scene.ConfigureProcessing import ConfigureProcessing
 from process_s1_scene.CheckArdFilesExist import CheckFileExists
 from process_s1_scene.GetConfiguration import GetConfiguration
+from process_s1_scene.GetManifest import GetManifest
 
 log = logging.getLogger('luigi-interface')
 
-@requires(ReprojectToOSGB, ConfigureProcessing, GetConfiguration)
+@requires(ReprojectToTargetSrs, ConfigureProcessing, GetConfiguration, GetManifest)
 class MergeBands(luigi.Task):
     paths = luigi.DictParameter()
     testProcessing = luigi.BoolParameter()
 
     def run(self):
-        reprojectToOSGBInfo = {}
-        with self.input()[0].open('r') as reprojectToOSGB:
-            reprojectToOSGBInfo = json.load(reprojectToOSGB)
+        reprojectToTargetSrsInfo = {}
+        with self.input()[0].open('r') as reprojectToTargetSrs:
+            reprojectToTargetSrsInfo = json.load(reprojectToTargetSrs)
 
         configureProcessingInfo = {}
         with self.input()[1].open('r') as configureProcessing:
@@ -34,21 +35,33 @@ class MergeBands(luigi.Task):
         with self.input()[2].open('r') as getConfiguration:
             configuration = json.load(getConfiguration)
 
-        sourceFiles = reprojectToOSGBInfo['reprojectedFiles']['VV'] + reprojectToOSGBInfo['reprojectedFiles']['VH']
+        getManifestInfo = {}
+        with self.input()[3].open('r') as getManifest:
+            getManifestInfo = json.load(getManifest)
+
+        sourceFiles = reprojectToTargetSrsInfo['reprojectedFiles']['VV'] + reprojectToTargetSrsInfo['reprojectedFiles']['VH']
         
         checkTasks = []
         for sourceFile in sourceFiles:
             checkTasks.append(CheckFileExists(filePath=sourceFile))
 
-
-
         yield checkTasks
+
+        manifestLoader = CheckFileExists(filePath=getManifestInfo["manifestFile"])
+        yield manifestLoader
+
+        manifest = ''
+        with manifestLoader.output().open('r') as manifestFile:
+            manifest = manifestFile.read()
         
         srcFilesArg = seq(sourceFiles).reduce(lambda x, f: x + ' ' + f)
 
         log.debug('merging files %s', srcFilesArg)
 
-        outputFile = os.path.join(configureProcessingInfo["parameters"]["s1_ard_temp_output_dir"], "{}_APGB_OSGB1936_RTC_SpkRL_dB.tif".format(configuration["productId"]))
+        inputFileName = os.path.basename(configuration["inputFilePath"])
+        outputFileName = wc.getOutputFileName(inputFileName, "VVVH", manifest, configuration["filenameSrs"])
+
+        outputFile = os.path.join(configureProcessingInfo["parameters"]["s1_ard_temp_output_dir"], outputFileName)
 
         cmdString = 'gdalbuildvrt -separate /vsistdout/ {}|gdal_translate -a_nodata nan -co BIGTIFF=YES -co TILED=YES -co COMPRESS=LZW --config CHECK_DISK_FREE_SPACE no /vsistdin/ {}' \
             .format(srcFilesArg, outputFile) 
@@ -62,7 +75,7 @@ class MergeBands(luigi.Task):
                 log.error(errStr)
                 raise RuntimeError(errStr)
         else:
-            wc.createTestFile(outputFile, "TEST_FILE")
+            wc.createTestFile(outputFile)
         
         with self.output().open('w') as out:
             out.write(json.dumps({
